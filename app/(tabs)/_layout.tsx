@@ -1,5 +1,6 @@
-import { Tabs } from 'expo-router';
+﻿import { Tabs } from 'expo-router';
 import React from 'react';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -11,6 +12,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      initialRouteName="pokemon"
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
@@ -24,6 +26,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="pokemon"
+        options={{
+          title: 'Pokémon',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons size={28} name="catching-pokemon" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
           title: 'Explore',
@@ -33,3 +44,6 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+
+
