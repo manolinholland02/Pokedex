@@ -1,9 +1,22 @@
-import { FlatList, FlatListProps, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActionSheetIOS,
+  Alert,
+  FlatList,
+  FlatListProps,
+  Platform,
+  Pressable,
+  Share,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import Favorite from '@/components/ui/favorite';
+import { useIsFavorite, useToggleFavorite } from '@/hooks/use-favorites';
 import { PokemonImage } from '@/components/ui/pokemon-image';
+import { POKEMON_LABEL } from '@/constants/labels';
 import { AppFonts, CardShadow } from '@/constants/theme';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -20,6 +33,112 @@ type PokemonListProps = {
   ListFooterComponent?: FlatListProps<Pokemon>['ListFooterComponent'];
 };
 
+type PokemonListItemProps = {
+  pokemon: Pokemon;
+  onOpen: (pokemonName: string) => void;
+};
+
+function PokemonListItem({ pokemon, onOpen }: PokemonListItemProps) {
+  const { data: isFavorite } = useIsFavorite(pokemon.id);
+  const toggleFavorite = useToggleFavorite();
+  const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png`;
+  const isFavorited = Boolean(isFavorite);
+  const favoriteLabel = isFavorited ? 'Remove from favorites' : 'Add to favorites';
+
+  const handleToggleFavorite = () => {
+    if (toggleFavorite.isPending) return;
+
+    toggleFavorite.mutate({
+      pokemonId: pokemon.id,
+      name: pokemon.name,
+      imageUrl,
+      isCurrentlyFavorite: isFavorited,
+    });
+  };
+
+  const showActions = () => {
+    const options = [`Open ${POKEMON_LABEL}`, favoriteLabel, 'Share', 'Cancel'];
+    const cancelButtonIndex = options.length - 1;
+    const shareMessage = `Check out this ${POKEMON_LABEL}: ${formatName(
+      pokemon.name
+    )} #${String(pokemon.id).padStart(3, '0')} — ${imageUrl}`;
+
+    const handleShare = () => {
+      Share.share({ message: shareMessage });
+    };
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options,
+          cancelButtonIndex,
+          userInterfaceStyle: 'light',
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 0) {
+            onOpen(pokemon.name);
+          }
+          if (buttonIndex === 1) {
+            handleToggleFavorite();
+          }
+          if (buttonIndex === 2) {
+            handleShare();
+          }
+        }
+      );
+      return;
+    }
+
+    Alert.alert('Actions', '', [
+      { text: options[0], onPress: () => onOpen(pokemon.name) },
+      { text: options[1], onPress: handleToggleFavorite },
+      { text: options[2], onPress: handleShare },
+      { text: options[3], style: 'cancel' },
+    ]);
+  };
+
+  const formatName = (value: string) =>
+    value
+      .split(/[-\s]+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+
+  return (
+    <Pressable style={styles.cardShadow} onPress={() => onOpen(pokemon.name)}>
+      <View style={styles.card}>
+        <View style={styles.cardBackground}>
+          <View style={styles.cardMetaRow}>
+            <View style={styles.idBadge}>
+              <Text style={styles.idText}>{String(pokemon.id).padStart(3, '0')}</Text>
+            </View>
+            <View style={styles.favoriteContainer}>
+              <Favorite pokemonId={pokemon.id} pokemonName={pokemon.name} imageUrl={imageUrl} />
+            </View>
+          </View>
+          <View style={styles.imageWrapper}>
+            <PokemonImage id={pokemon.id} size="100%" />
+          </View>
+        </View>
+        <View style={styles.nameSection}>
+          <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+            {formatName(pokemon.name)}
+          </Text>
+          <Pressable
+            style={styles.iconWrapper}
+            onPress={(event) => {
+              event.stopPropagation();
+              showActions();
+            }}
+          >
+            <MaterialIcons name="more-vert" size={24} color="#0E0940" />
+          </Pressable>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
 export function PokemonList({
   data,
   onEndReached,
@@ -27,12 +146,7 @@ export function PokemonList({
   ListFooterComponent,
 }: PokemonListProps) {
   const router = useRouter();
-  const formatName = (value: string) =>
-    value
-      .split(/[-\s]+/)
-      .filter(Boolean)
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(' ');
+
   const handlePokemonPress = (pokemonName: string) => {
     router.push(`/pokemon/${pokemonName.toLowerCase()}`);
   };
@@ -47,37 +161,7 @@ export function PokemonList({
       onEndReached={onEndReached}
       onEndReachedThreshold={onEndReachedThreshold}
       ListFooterComponent={ListFooterComponent}
-      renderItem={({ item }) => {
-        const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${item.id}.png`;
-
-        return (
-          <Pressable style={styles.cardShadow} onPress={() => handlePokemonPress(item.name)}>
-            <View style={styles.card}>
-            <View style={styles.cardBackground}>
-              <View style={styles.cardMetaRow}>
-                <View style={styles.idBadge}>
-                  <Text style={styles.idText}>{String(item.id).padStart(3, '0')}</Text>
-                </View>
-                <View style={styles.favoriteContainer}>
-                  <Favorite pokemonId={item.id} pokemonName={item.name} imageUrl={imageUrl} />
-                </View>
-              </View>
-              <View style={styles.imageWrapper}>
-                <PokemonImage id={item.id} size="100%" />
-              </View>
-            </View>
-              <View style={styles.nameSection}>
-                <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
-                  {formatName(item.name)}
-                </Text>
-                <View style={styles.iconWrapper}>
-                  <MaterialIcons name="more-vert" size={24} color="#0E0940" />
-                </View>
-              </View>
-            </View>
-          </Pressable>
-        );
-      }}
+      renderItem={({ item }) => <PokemonListItem pokemon={item} onOpen={handlePokemonPress} />}
     />
   );
 }
