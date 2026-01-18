@@ -5,13 +5,15 @@ import { PokemonList } from '@/components/ui/pokemon-list';
 import { AppFonts } from '@/constants/theme';
 import { pokemonData } from '@/constants/pokemon';
 
-export default function AllPokemonScreen() {
+const favoritePokemon = pokemonData.slice(0, 2);
+
+export default function FavoritesScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>All Pokémon</Text>
+        <Text style={styles.headerTitle}>Favorites</Text>
       </View>
-      <PokemonList data={pokemonData} />
+      <PokemonList data={favoritePokemon} />
     </SafeAreaView>
   );
 }
