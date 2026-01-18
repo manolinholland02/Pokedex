@@ -61,10 +61,10 @@ function PokemonListItem({ pokemon, onOpen }: PokemonListItemProps) {
     const cancelButtonIndex = options.length - 1;
     const shareMessage = `Check out this ${POKEMON_LABEL}: ${formatName(
       pokemon.name
-    )} #${String(pokemon.id).padStart(3, '0')} — ${imageUrl}`;
+    )} #${String(pokemon.id).padStart(3, '0')} - ${imageUrl}`;
 
     const handleShare = () => {
-      Share.share({ message: shareMessage });
+      void Share.share({ message: shareMessage }).catch(() => {});
     };
 
     if (Platform.OS === 'ios') {

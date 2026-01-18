@@ -32,7 +32,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   componentDidCatch(error: unknown): void {
-    console.error('ErrorBoundary caught an error', error);
+    void error;
   }
 
   private handleReset = () => {

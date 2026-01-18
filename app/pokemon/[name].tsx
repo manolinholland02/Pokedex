@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TabView } from 'react-native-tab-view';
 import Svg, { Line } from 'react-native-svg';
 
 import Favorite from '@/components/ui/favorite';
@@ -57,6 +58,7 @@ const formatName = (value: string) =>
     .join(' ');
 
 type PokemonTabKey = 'about' | 'stats' | 'evolution';
+type TabRoute = { key: PokemonTabKey; title: string };
 
 const hasProp = (value: unknown, prop: string): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && prop in value;
@@ -78,7 +80,7 @@ const getErrorStatus = (err: unknown): number | null => {
 export default function PokemonDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { height: viewportHeight } = useWindowDimensions();
+  const { height: viewportHeight, width: viewportWidth } = useWindowDimensions();
   const { name } = useLocalSearchParams<{ name?: string | string[] }>();
   const nameValue = Array.isArray(name) ? name[0] : name;
   const pokemonName = nameValue ?? '';
@@ -91,14 +93,19 @@ export default function PokemonDetailScreen() {
     refetch: refetchEvolution,
     isFetching: isEvolutionFetching,
   } = usePokemonEvolutionChain(evolutionName);
-  const [activeTab, setActiveTab] = useState<PokemonTabKey>('about');
+  const [tabIndex, setTabIndex] = useState(0);
+  const routes: TabRoute[] = [
+    { key: 'about', title: 'About' },
+    { key: 'stats', title: 'Stats' },
+    { key: 'evolution', title: 'Evolution' },
+  ];
+  const [tabHeights, setTabHeights] = useState<Record<PokemonTabKey, number>>({
+    about: 0,
+    stats: 0,
+    evolution: 0,
+  });
   const [whiteTop, setWhiteTop] = useState<number | null>(null);
   const [contentHeight, setContentHeight] = useState(0);
-  const tabs: { key: PokemonTabKey; label: string }[] = [
-    { key: 'about', label: 'About' },
-    { key: 'stats', label: 'Stats' },
-    { key: 'evolution', label: 'Evolution' },
-  ];
   const isMissingName = pokemonName.trim().length === 0;
   const errorStatus = error ? getErrorStatus(error) : null;
   let errorMessage: string | null = null;
@@ -106,6 +113,10 @@ export default function PokemonDetailScreen() {
   const handleImageLayout = (event: LayoutChangeEvent) => {
     const { y, height } = event.nativeEvent.layout;
     setWhiteTop(y + height - whiteOverlap);
+  };
+  const handleTabLayout = (key: PokemonTabKey) => (event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+    setTabHeights((prev) => (prev[key] === height ? prev : { ...prev, [key]: height }));
   };
   const whiteHeight =
     whiteTop === null
@@ -121,8 +132,6 @@ export default function PokemonDetailScreen() {
       errorMessage = 'Network error. Check your connection and try again.';
       showRetry = true;
     }
-  } else if (!pokemon) {
-    errorMessage = 'Pokemon not found';
   }
 
   if (isLoading) {
@@ -219,6 +228,24 @@ export default function PokemonDetailScreen() {
     );
   }
 
+  if (!pokemon) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={styles.topBar}>
+          <Pressable style={styles.backButton} onPress={() => router.back()}>
+            <MaterialIcons name="arrow-back" size={20} color="#000000" />
+            <Text style={styles.backText}>Back</Text>
+          </Pressable>
+          <View style={styles.favoriteWrapper} />
+        </View>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Pokemon not found</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   const missingValue = 'Not available';
   const baseExperienceValue = Number.isFinite(pokemon.base_experience)
     ? `${pokemon.base_experience} XP`
@@ -265,6 +292,139 @@ export default function PokemonDetailScreen() {
 
   const evolutionItems = evolutionChain ?? [];
   const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png`;
+  const activeTabKey = routes[tabIndex]?.key ?? 'about';
+  const defaultTabHeight = Math.max(200, viewportHeight * 0.3);
+  const tabViewHeight = tabHeights[activeTabKey] || defaultTabHeight;
+
+  const renderScene = ({ route }: { route: TabRoute }) => {
+    if (route.key === 'about') {
+      return (
+        <View style={styles.tabScene} onLayout={handleTabLayout('about')}>
+          <View style={styles.detailsContainer}>
+            <View style={styles.aboutList}>
+              {aboutItems.map((item) => (
+                <View key={item.label} style={styles.aboutRow}>
+                  <View style={styles.aboutLabelContainer}>
+                    <Text style={styles.aboutLabel} numberOfLines={1} ellipsizeMode="tail">
+                      {item.label}
+                    </Text>
+                  </View>
+                  <View style={styles.aboutValueContainer}>
+                    <Text
+                      style={[
+                        styles.aboutValue,
+                        item.value === missingValue ? styles.aboutValueMissing : null,
+                      ]}
+                    >
+                      {item.value}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+      );
+    }
+
+    if (route.key === 'stats') {
+      return (
+        <View style={styles.tabScene} onLayout={handleTabLayout('stats')}>
+          <View style={styles.detailsContainer}>
+            <View style={styles.statsList}>
+              {statsItems.map((item) => {
+                const isMissing = item.value === null;
+                const displayValue = isMissing ? missingValue : String(item.value);
+                const safeValue = item.value ?? 0;
+                const percentage = isMissing ? 0 : Math.min(safeValue / statMax, 1);
+
+                return (
+                  <View key={item.label} style={styles.statItem}>
+                    <View style={styles.statHeader}>
+                      <Text style={styles.statLabel}>{item.label}</Text>
+                      <Text
+                        style={[
+                          styles.statValue,
+                          isMissing ? styles.statValueMissing : null,
+                        ]}
+                      >
+                        {displayValue}
+                      </Text>
+                    </View>
+                    <View style={styles.statTrack}>
+                      <View style={[styles.statFill, { width: `${percentage * 100}%` }]} />
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.tabScene} onLayout={handleTabLayout('evolution')}>
+        <View style={styles.detailsContainer}>
+          {isEvolutionLoading ? (
+            <View style={styles.tabStatus}>
+              <ActivityIndicator size="small" color="#5631E8" />
+              <Text style={styles.tabStatusText}>Loading evolution...</Text>
+            </View>
+          ) : evolutionError ? (
+            <View style={styles.tabStatus}>
+              <Text style={styles.tabStatusText}>Error loading evolution.</Text>
+              <RetryButton
+                isFetching={isEvolutionFetching}
+                onPress={() => refetchEvolution()}
+              />
+            </View>
+          ) : evolutionItems.length === 0 ? (
+            <Text style={styles.placeholderText}>No evolution data available.</Text>
+          ) : (
+            <View style={styles.evolutionList}>
+              {evolutionItems.map((entry: EvolutionEntry, index: number) => {
+                const isLast = index === evolutionItems.length - 1;
+
+                return (
+                  <View key={`${entry.id}-${entry.name}`} style={styles.evolutionItem}>
+                    <View style={styles.evolutionCard}>
+                      <View style={styles.evolutionImage}>
+                        <PokemonImage id={entry.id} size={56} />
+                      </View>
+                      <View style={styles.evolutionInfo}>
+                        <View style={styles.evolutionBadge}>
+                          <Text style={styles.evolutionBadgeText}>
+                            {String(entry.id).padStart(3, '0')}
+                          </Text>
+                        </View>
+                        <Text style={styles.evolutionName}>{formatName(entry.name)}</Text>
+                      </View>
+                    </View>
+                    {isLast ? null : (
+                      <View style={styles.evolutionConnector}>
+                        <Svg width={evolutionCardHeight} height={evolutionConnectorHeight}>
+                          <Line
+                            x1={evolutionCardHeight / 2}
+                            y1={0}
+                            x2={evolutionCardHeight / 2}
+                            y2={evolutionConnectorHeight}
+                            stroke="#B7B6C6"
+                            strokeWidth={2}
+                            strokeDasharray="2,4"
+                          />
+                        </Svg>
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -326,133 +486,32 @@ export default function PokemonDetailScreen() {
           </View>
 
           <View style={styles.tabs}>
-            {tabs.map((tab) => (
-              <Pressable
-                key={tab.key}
-                style={[styles.tabButton, activeTab === tab.key ? styles.tabButtonActive : null]}
-                onPress={() => setActiveTab(tab.key)}
-              >
-                <Text style={[styles.tabText, activeTab === tab.key ? styles.tabTextActive : null]}>
-                  {tab.label}
-                </Text>
-              </Pressable>
-            ))}
+            {routes.map((route, index) => {
+              const isActive = tabIndex === index;
+
+              return (
+                <Pressable
+                  key={route.key}
+                  style={[styles.tabButton, isActive ? styles.tabButtonActive : null]}
+                  onPress={() => setTabIndex(index)}
+                >
+                  <Text style={[styles.tabText, isActive ? styles.tabTextActive : null]}>
+                    {route.title}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
 
-        {activeTab === 'about' ? (
-            <View style={styles.detailsContainer}>
-              <View style={styles.aboutList}>
-                {aboutItems.map((item) => (
-                  <View key={item.label} style={styles.aboutRow}>
-                    <View style={styles.aboutLabelContainer}>
-                      <Text style={styles.aboutLabel} numberOfLines={1} ellipsizeMode="tail">
-                        {item.label}
-                      </Text>
-                    </View>
-                    <View style={styles.aboutValueContainer}>
-                      <Text
-                        style={[
-                          styles.aboutValue,
-                          item.value === missingValue ? styles.aboutValueMissing : null,
-                        ]}
-                      >
-                        {item.value}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            </View>
-          ) : activeTab === 'stats' ? (
-            <View style={styles.detailsContainer}>
-              <View style={styles.statsList}>
-                {statsItems.map((item) => {
-                  const isMissing = item.value === null;
-                  const displayValue = isMissing ? missingValue : String(item.value);
-                  const percentage = isMissing
-                    ? 0
-                    : Math.min(item.value / statMax, 1);
-
-                  return (
-                    <View key={item.label} style={styles.statItem}>
-                      <View style={styles.statHeader}>
-                        <Text style={styles.statLabel}>{item.label}</Text>
-                        <Text
-                          style={[
-                            styles.statValue,
-                            isMissing ? styles.statValueMissing : null,
-                          ]}
-                        >
-                          {displayValue}
-                        </Text>
-                      </View>
-                      <View style={styles.statTrack}>
-                        <View style={[styles.statFill, { width: `${percentage * 100}%` }]} />
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-          ) : (
-            <View style={styles.detailsContainer}>
-              {isEvolutionLoading ? (
-                <View style={styles.tabStatus}>
-                  <ActivityIndicator size="small" color="#5631E8" />
-                  <Text style={styles.tabStatusText}>Loading evolution...</Text>
-                </View>
-              ) : evolutionError ? (
-                <View style={styles.tabStatus}>
-                  <Text style={styles.tabStatusText}>Error loading evolution.</Text>
-                  <RetryButton
-                    isFetching={isEvolutionFetching}
-                    onPress={() => refetchEvolution()}
-                  />
-                </View>
-              ) : evolutionItems.length === 0 ? (
-                <Text style={styles.placeholderText}>No evolution data available.</Text>
-              ) : (
-                <View style={styles.evolutionList}>
-                  {evolutionItems.map((entry: EvolutionEntry, index: number) => {
-                    const isLast = index === evolutionItems.length - 1;
-
-                    return (
-                      <View key={`${entry.id}-${entry.name}`} style={styles.evolutionItem}>
-                        <View style={styles.evolutionCard}>
-                          <View style={styles.evolutionImage}>
-                            <PokemonImage id={entry.id} size={56} />
-                          </View>
-                          <View style={styles.evolutionInfo}>
-                            <View style={styles.evolutionBadge}>
-                              <Text style={styles.evolutionBadgeText}>
-                                {String(entry.id).padStart(3, '0')}
-                              </Text>
-                            </View>
-                            <Text style={styles.evolutionName}>{formatName(entry.name)}</Text>
-                          </View>
-                        </View>
-                        {isLast ? null : (
-                          <View style={styles.evolutionConnector}>
-                            <Svg width={evolutionCardHeight} height={evolutionConnectorHeight}>
-                              <Line
-                                x1={evolutionCardHeight / 2}
-                                y1={0}
-                                x2={evolutionCardHeight / 2}
-                                y2={evolutionConnectorHeight}
-                                stroke="#B7B6C6"
-                                strokeWidth={2}
-                                strokeDasharray="2,4"
-                              />
-                            </Svg>
-                          </View>
-                        )}
-                      </View>
-                    );
-                  })}
-                </View>
-              )}
-            </View>
-          )}
+          <TabView
+            navigationState={{ index: tabIndex, routes }}
+            renderScene={renderScene}
+            onIndexChange={setTabIndex}
+            initialLayout={{ width: viewportWidth }}
+            style={{ height: tabViewHeight }}
+            sceneContainerStyle={styles.tabSceneContainer}
+            renderTabBar={() => null}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -576,6 +635,12 @@ const styles = StyleSheet.create({
   tabTextActive: {
     color: '#0E0940',
     fontFamily: AppFonts.rubikSemiBold,
+  },
+  tabScene: {
+    width: '100%',
+  },
+  tabSceneContainer: {
+    backgroundColor: 'transparent',
   },
   detailsContainer: {
     padding: 16,

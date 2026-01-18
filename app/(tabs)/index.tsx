@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { Pokemon, PokemonList, PokemonListSkeleton } from '@/components/ui/pokemon-list';
-import { Skeleton } from '@/components/ui/skeleton';
 import { POKEMON_LABEL } from '@/constants/labels';
 import { AppFonts, CardShadow, HeaderTitleStyle } from '@/constants/theme';
 import { useInfinitePokemonList } from '@/hooks/use-pokemon';

@@ -22,7 +22,6 @@ class DatabaseService {
           this.db = await SQLite.openDatabaseAsync('pokedex.db');
           await this.createTables();
         } catch (error) {
-          console.error('Error initializing database:', error);
           throw error;
         }
       })();
@@ -69,7 +68,6 @@ class DatabaseService {
         [pokemonId, name, imageUrl || '']
       );
     } catch (error) {
-      console.error('Error adding favorite:', error);
       throw error;
     }
   }
@@ -80,7 +78,6 @@ class DatabaseService {
     try {
       await db.runAsync('DELETE FROM favorites WHERE id = ?', [pokemonId]);
     } catch (error) {
-      console.error('Error removing favorite:', error);
       throw error;
     }
   }
@@ -95,7 +92,6 @@ class DatabaseService {
       );
       return (result?.count || 0) > 0;
     } catch (error) {
-      console.error('Error checking favorite status:', error);
       throw error;
     }
   }
@@ -109,7 +105,6 @@ class DatabaseService {
       );
       return result;
     } catch (error) {
-      console.error('Error getting favorites:', error);
       throw error;
     }
   }

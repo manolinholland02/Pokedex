@@ -3,17 +3,15 @@ import React from 'react';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       initialRouteName="index"
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: '#5631E8',
+        tabBarInactiveTintColor: '#0E0940',
+        tabBarStyle: { backgroundColor: '#EDF6FF', borderTopWidth: 0 },
         headerShown: false,
         tabBarButton: HapticTab,
       }}>

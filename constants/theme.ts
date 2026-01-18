@@ -3,7 +3,7 @@
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
 
-import { Platform } from 'react-native';
+import { Platform, type TextStyle, type ViewStyle } from 'react-native';
 
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
@@ -80,7 +80,7 @@ export const AppFonts = {
   sfProTextRegular: 'SFProText-Regular',
 };
 
-export const CardShadow = {
+export const CardShadow: ViewStyle = {
   shadowColor: '#303773',
   shadowOpacity: 0.15,
   shadowRadius: 15,
@@ -88,14 +88,14 @@ export const CardShadow = {
   elevation: 6,
 };
 
-export const ErrorTextStyle = {
+export const ErrorTextStyle: TextStyle = {
   fontSize: 18,
   color: '#0E0940',
   textAlign: 'center',
   fontFamily: AppFonts.rubikMedium,
 };
 
-export const HeaderTitleStyle = {
+export const HeaderTitleStyle: TextStyle = {
   color: '#0E0940',
   fontSize: 24,
   fontFamily: AppFonts.cabinetGroteskExtraBold,

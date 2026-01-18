@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View, type DimensionValue } from 'react-native';
 
 interface PokemonImageProps {
   id: string | number;
-  size?: number | string;
+  size?: DimensionValue;
 }
 
 export function PokemonImage({ id, size = 200 }: PokemonImageProps) {

@@ -64,7 +64,7 @@ export default function RootLayout() {
   }, [fontsLoaded, fontError]);
 
   useEffect(() => {
-    databaseService.initDatabase().catch(console.error);
+    databaseService.initDatabase().catch(() => {});
   }, []);
 
   if (!fontsLoaded && !fontError) {
