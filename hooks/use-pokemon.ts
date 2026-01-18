@@ -1,5 +1,5 @@
 import { InfiniteData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { NamedAPIResource, NamedAPIResourceList } from 'pokenode-ts';
+import { NamedAPIResource, NamedAPIResourceList, Pokemon } from 'pokenode-ts';
 
 import { PokeApiService } from '@/services/pokemon-api';
 
@@ -75,5 +75,14 @@ export const useInfinitePokemonList = (limit: number = 20) => {
       pageParams: data.pageParams,
       pages: data.pages.map(mapPageWithIds),
     }),
+  });
+};
+
+export const usePokemonByName = (name: string) => {
+  return useQuery<Pokemon, Error>({
+    queryKey: ['pokemon', name],
+    queryFn: () => PokeApiService.getPokemonByName(name),
+    enabled: Boolean(name),
+    staleTime: 10 * 60 * 1000,
   });
 };

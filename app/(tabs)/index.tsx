@@ -111,6 +111,7 @@ const styles = StyleSheet.create({
     color: '#0E0940',
     fontSize: 16,
     fontFamily: AppFonts.rubikMedium,
+    textAlign: 'center',
   },
   footer: {
     alignItems: 'center',

@@ -23,6 +23,9 @@ export function PokemonList({
   ListFooterComponent,
 }: PokemonListProps) {
   const router = useRouter();
+  const handlePokemonPress = (pokemonName: string) => {
+    router.push(`/pokemon/${pokemonName.toLowerCase()}`);
+  };
 
   return (
     <FlatList
@@ -35,7 +38,7 @@ export function PokemonList({
       onEndReachedThreshold={onEndReachedThreshold}
       ListFooterComponent={ListFooterComponent}
       renderItem={({ item }) => (
-        <Pressable style={styles.cardShadow} onPress={() => router.push(`/pokemon/${item.id}`)}>
+        <Pressable style={styles.cardShadow} onPress={() => handlePokemonPress(item.name)}>
           <View style={styles.card}>
             <View style={styles.cardBackground}>
               <View style={styles.idBadge}>
