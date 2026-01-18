@@ -1,7 +1,7 @@
 import { InfiniteData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { NamedAPIResource, NamedAPIResourceList, Pokemon } from 'pokenode-ts';
+import { ChainLink, NamedAPIResource, NamedAPIResourceList, Pokemon } from 'pokenode-ts';
 
-import { PokeApiService } from '@/services/pokemon-api';
+import { EvolutionApiService, PokeApiService } from '@/services/pokemon-api';
 
 export type PokemonWithId = NamedAPIResource & {
   id: string;
@@ -19,6 +19,34 @@ export function getPokemonIdFromUrl(url: string): string | null {
   const match = url.match(/\/pokemon\/(\d+)\/?$/);
   return match ? match[1] : null;
 }
+
+const getPokemonSpeciesIdFromUrl = (url: string): number | null => {
+  if (!url) {
+    return null;
+  }
+
+  const match = url.match(/\/pokemon-species\/(\d+)\/?$/);
+  if (!match) {
+    return null;
+  }
+
+  const id = Number(match[1]);
+  return Number.isNaN(id) ? null : id;
+};
+
+const getEvolutionChainIdFromUrl = (url: string): number | null => {
+  if (!url) {
+    return null;
+  }
+
+  const match = url.match(/\/evolution-chain\/(\d+)\/?$/);
+  if (!match) {
+    return null;
+  }
+
+  const id = Number(match[1]);
+  return Number.isNaN(id) ? null : id;
+};
 
 const mapWithResourceId = (resource: NamedAPIResource): PokemonWithId => {
   const id = getPokemonIdFromUrl(resource.url) || '';
@@ -84,5 +112,42 @@ export const usePokemonByName = (name: string) => {
     queryFn: () => PokeApiService.getPokemonByName(name),
     enabled: Boolean(name),
     staleTime: 10 * 60 * 1000,
+  });
+};
+
+export type EvolutionEntry = {
+  id: number;
+  name: string;
+};
+
+const collectEvolutionEntries = (link: ChainLink, entries: EvolutionEntry[]) => {
+  const idValue = getPokemonSpeciesIdFromUrl(link.species.url);
+
+  if (idValue !== null) {
+    entries.push({ id: idValue, name: link.species.name });
+  }
+
+  for (const next of link.evolves_to) {
+    collectEvolutionEntries(next, entries);
+  }
+};
+
+export const usePokemonEvolutionChain = (name: string) => {
+  return useQuery<EvolutionEntry[], Error>({
+    queryKey: ['pokemon-evolution', name],
+    queryFn: async () => {
+      const species = await PokeApiService.getPokemonSpeciesByName(name);
+      const chainId = getEvolutionChainIdFromUrl(species.evolution_chain.url);
+
+      if (!chainId) {
+        return [];
+      }
+
+      const evolutionChain = await EvolutionApiService.getEvolutionChainById(chainId);
+      const entries: EvolutionEntry[] = [];
+      collectEvolutionEntries(evolutionChain.chain, entries);
+      return entries;
+    },
+    enabled: Boolean(name),
   });
 };

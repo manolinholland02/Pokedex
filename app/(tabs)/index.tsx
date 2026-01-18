@@ -1,7 +1,8 @@
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Pokemon, PokemonList } from '@/components/ui/pokemon-list';
+import { Pokemon, PokemonList, PokemonListSkeleton } from '@/components/ui/pokemon-list';
+import { Skeleton } from '@/components/ui/skeleton';
 import { AppFonts } from '@/constants/theme';
 import { useInfinitePokemonList } from '@/hooks/use-pokemon';
 
@@ -19,9 +20,12 @@ export default function AllPokemonScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.centerContainer}>
-        <ActivityIndicator size="large" />
-        <Text style={styles.statusText}>Loading Pokémon...</Text>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>All PokAcmon</Text>
+          <Skeleton width={140} height={14} borderRadius={6} style={styles.headerSkeleton} />
+        </View>
+        <PokemonListSkeleton count={6} />
       </SafeAreaView>
     );
   }
@@ -98,6 +102,9 @@ const styles = StyleSheet.create({
     color: '#5631E8',
     fontSize: 14,
     fontFamily: AppFonts.rubikMedium,
+  },
+  headerSkeleton: {
+    marginTop: 6,
   },
   centerContainer: {
     flex: 1,

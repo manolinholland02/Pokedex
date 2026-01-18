@@ -76,4 +76,20 @@ export const AppFonts = {
   rubikRegularItalic: 'Rubik-RegularItalic',
   rubikSemiBold: 'Rubik-SemiBold',
   rubikSemiBoldItalic: 'Rubik-SemiBoldItalic',
+  sfProTextRegular: 'SFProText-Regular',
+};
+
+export const CardShadow = {
+  shadowColor: '#303773',
+  shadowOpacity: 0.15,
+  shadowRadius: 15,
+  shadowOffset: { width: 0, height: 2 },
+  elevation: 6,
+};
+
+export const ErrorTextStyle = {
+  fontSize: 18,
+  color: '#0E0940',
+  textAlign: 'center',
+  fontFamily: AppFonts.rubikMedium,
 };

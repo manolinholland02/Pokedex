@@ -1,7 +1,8 @@
 import { FlatList, FlatListProps, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { AppFonts } from '@/constants/theme';
+import { AppFonts, CardShadow } from '@/constants/theme';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export interface Pokemon {
   id: number;
@@ -55,6 +56,36 @@ export function PokemonList({
   );
 }
 
+type PokemonListSkeletonProps = {
+  count?: number;
+};
+
+export function PokemonListSkeleton({ count = 6 }: PokemonListSkeletonProps) {
+  const items = Array.from({ length: count }, (_, index) => index);
+
+  return (
+    <FlatList
+      data={items}
+      keyExtractor={(item) => item.toString()}
+      numColumns={2}
+      contentContainerStyle={styles.listContent}
+      columnWrapperStyle={styles.column}
+      renderItem={() => (
+        <View style={styles.cardShadow}>
+          <View style={styles.card}>
+            <View style={styles.cardBackground}>
+              <Skeleton width={40} height={16} borderRadius={4} />
+            </View>
+            <View style={styles.nameSection}>
+              <Skeleton width="70%" height={18} borderRadius={6} />
+            </View>
+          </View>
+        </View>
+      )}
+    />
+  );
+}
+
 const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 16,
@@ -66,14 +97,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   cardShadow: {
+    ...CardShadow,
     flex: 1,
     aspectRatio: 163 / 211,
     borderRadius: 8,
-    shadowColor: '#303773',
-    shadowOpacity: 0.15,
-    shadowRadius: 15,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 6,
   },
   card: {
     flex: 1,
