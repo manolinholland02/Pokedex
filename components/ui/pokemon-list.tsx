@@ -2,6 +2,7 @@ import { FlatList, FlatListProps, Pressable, StyleSheet, Text, View } from 'reac
 import { useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
+import Favorite from '@/components/ui/favorite';
 import { PokemonImage } from '@/components/ui/pokemon-image';
 import { AppFonts, CardShadow } from '@/constants/theme';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -46,28 +47,37 @@ export function PokemonList({
       onEndReached={onEndReached}
       onEndReachedThreshold={onEndReachedThreshold}
       ListFooterComponent={ListFooterComponent}
-      renderItem={({ item }) => (
-        <Pressable style={styles.cardShadow} onPress={() => handlePokemonPress(item.name)}>
-          <View style={styles.card}>
+      renderItem={({ item }) => {
+        const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${item.id}.png`;
+
+        return (
+          <Pressable style={styles.cardShadow} onPress={() => handlePokemonPress(item.name)}>
+            <View style={styles.card}>
             <View style={styles.cardBackground}>
-              <View style={styles.idBadge}>
-                <Text style={styles.idText}>{String(item.id).padStart(3, '0')}</Text>
+              <View style={styles.cardMetaRow}>
+                <View style={styles.idBadge}>
+                  <Text style={styles.idText}>{String(item.id).padStart(3, '0')}</Text>
+                </View>
+                <View style={styles.favoriteContainer}>
+                  <Favorite pokemonId={item.id} pokemonName={item.name} imageUrl={imageUrl} />
+                </View>
               </View>
               <View style={styles.imageWrapper}>
                 <PokemonImage id={item.id} size="100%" />
               </View>
             </View>
-            <View style={styles.nameSection}>
-              <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
-                {formatName(item.name)}
-              </Text>
-              <View style={styles.iconWrapper}>
-                <MaterialIcons name="more-vert" size={24} color="#0E0940" />
+              <View style={styles.nameSection}>
+                <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+                  {formatName(item.name)}
+                </Text>
+                <View style={styles.iconWrapper}>
+                  <MaterialIcons name="more-vert" size={24} color="#0E0940" />
+                </View>
               </View>
             </View>
-          </View>
-        </Pressable>
-      )}
+          </Pressable>
+        );
+      }}
     />
   );
 }
@@ -132,6 +142,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#F6F6FF',
     padding: 12,
   },
+  cardMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  favoriteContainer: {
+    height: 24,
+    justifyContent: 'center',
+  },
   imageWrapper: {
     flex: 1,
     alignItems: 'center',
@@ -149,12 +169,13 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   idBadge: {
+    height: 24,
     alignSelf: 'flex-start',
     backgroundColor: '#5631E8',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 4,
-    marginBottom: 8,
+    justifyContent: 'center',
   },
   idText: {
     color: '#FFFFFF',

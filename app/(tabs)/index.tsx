@@ -5,12 +5,11 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { Pokemon, PokemonList, PokemonListSkeleton } from '@/components/ui/pokemon-list';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AppFonts, CardShadow } from '@/constants/theme';
+import { POKEMON_LABEL } from '@/constants/labels';
+import { AppFonts, CardShadow, HeaderTitleStyle } from '@/constants/theme';
 import { useInfinitePokemonList } from '@/hooks/use-pokemon';
 
 const PAGE_LIMIT = 50;
-const pokemonLabel = 'Pok\u00e9mon';
-
 export default function AllPokemonScreen() {
   const {
     data: pokemonList,
@@ -29,7 +28,7 @@ export default function AllPokemonScreen() {
         <MaterialIcons name="search" size={24} color="#000000" />
         <TextInput
           style={styles.searchInput}
-          placeholder={`Search for ${pokemonLabel}...`}
+          placeholder={`Search for ${POKEMON_LABEL}...`}
           placeholderTextColor="#b3b3b3"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -47,7 +46,7 @@ export default function AllPokemonScreen() {
         {searchBar}
         {showHeader ? (
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>{`All ${pokemonLabel}`}</Text>
+            <Text style={styles.headerTitle}>{`All ${POKEMON_LABEL}`}</Text>
           </View>
         ) : null}
         <PokemonListSkeleton count={6} />
@@ -60,7 +59,7 @@ export default function AllPokemonScreen() {
 
     return (
       <SafeAreaView style={styles.centerContainer}>
-        <Text style={styles.statusText}>{`Error loading ${pokemonLabel}: ${errorMessage}`}</Text>
+        <Text style={styles.statusText}>{`Error loading ${POKEMON_LABEL}: ${errorMessage}`}</Text>
       </SafeAreaView>
     );
   }
@@ -102,7 +101,7 @@ export default function AllPokemonScreen() {
       {searchBar}
       {showHeader ? (
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>{`All ${pokemonLabel}`}</Text>
+          <Text style={styles.headerTitle}>{`All ${POKEMON_LABEL}`}</Text>
         </View>
       ) : null}
       <PokemonList
@@ -149,9 +148,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   headerTitle: {
-    color: '#0E0940',
-    fontSize: 28,
-    fontFamily: AppFonts.cabinetGroteskExtraBold,
+    ...HeaderTitleStyle,
   },
   headerCount: {
     color: '#5631E8',

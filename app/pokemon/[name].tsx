@@ -14,7 +14,9 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Line } from 'react-native-svg';
 
+import Favorite from '@/components/ui/favorite';
 import { PokemonImage } from '@/components/ui/pokemon-image';
+import { RetryButton } from '@/components/ui/retry-button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AppFonts, CardShadow, ErrorTextStyle } from '@/constants/theme';
 import { EvolutionEntry, usePokemonByName, usePokemonEvolutionChain } from '@/hooks/use-pokemon';
@@ -99,7 +101,6 @@ export default function PokemonDetailScreen() {
   ];
   const isMissingName = pokemonName.trim().length === 0;
   const errorStatus = error ? getErrorStatus(error) : null;
-  const retryLabel = isFetching ? 'Trying again...' : 'Try again';
   let errorMessage: string | null = null;
   let showRetry = false;
   const handleImageLayout = (event: LayoutChangeEvent) => {
@@ -130,10 +131,13 @@ export default function PokemonDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <Stack.Screen options={{ headerShown: false }} />
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={20} color="#000000" />
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
+        <View style={styles.topBar}>
+          <Pressable style={styles.backButton} onPress={() => router.back()}>
+            <MaterialIcons name="arrow-back" size={20} color="#000000" />
+            <Text style={styles.backText}>Back</Text>
+          </Pressable>
+          <View style={styles.favoriteWrapper} />
+        </View>
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
@@ -198,20 +202,17 @@ export default function PokemonDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <Stack.Screen options={{ headerShown: false }} />
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={20} color="#000000" />
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
+        <View style={styles.topBar}>
+          <Pressable style={styles.backButton} onPress={() => router.back()}>
+            <MaterialIcons name="arrow-back" size={20} color="#000000" />
+            <Text style={styles.backText}>Back</Text>
+          </Pressable>
+          <View style={styles.favoriteWrapper} />
+        </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{errorMessage}</Text>
           {showRetry ? (
-            <Pressable
-              style={[styles.retryButton, isFetching ? styles.retryButtonDisabled : null]}
-              onPress={() => refetch()}
-              disabled={isFetching}
-            >
-              <Text style={styles.retryText}>{retryLabel}</Text>
-            </Pressable>
+            <RetryButton isFetching={isFetching} onPress={() => refetch()} />
           ) : null}
         </View>
       </SafeAreaView>
@@ -263,14 +264,25 @@ export default function PokemonDetailScreen() {
   ];
 
   const evolutionItems = evolutionChain ?? [];
+  const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png`;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <Stack.Screen options={{ headerShown: false }} />
-      <Pressable style={styles.backButton} onPress={() => router.back()}>
-        <MaterialIcons name="arrow-back" size={20} color="#000000" />
-        <Text style={styles.backText}>Back</Text>
-      </Pressable>
+        <View style={styles.topBar}>
+          <Pressable style={styles.backButton} onPress={() => router.back()}>
+            <MaterialIcons name="arrow-back" size={20} color="#000000" />
+            <Text style={styles.backText}>Back</Text>
+          </Pressable>
+          <View style={styles.favoriteWrapper}>
+            <Favorite
+              pokemonId={pokemon.id}
+              pokemonName={pokemon.name}
+              imageUrl={imageUrl}
+              variant="detail"
+            />
+          </View>
+        </View>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
@@ -392,18 +404,10 @@ export default function PokemonDetailScreen() {
               ) : evolutionError ? (
                 <View style={styles.tabStatus}>
                   <Text style={styles.tabStatusText}>Error loading evolution.</Text>
-                  <Pressable
-                    style={[
-                      styles.retryButton,
-                      isEvolutionFetching ? styles.retryButtonDisabled : null,
-                    ]}
+                  <RetryButton
+                    isFetching={isEvolutionFetching}
                     onPress={() => refetchEvolution()}
-                    disabled={isEvolutionFetching}
-                  >
-                    <Text style={styles.retryText}>
-                      {isEvolutionFetching ? 'Trying again...' : 'Try again'}
-                    </Text>
-                  </Pressable>
+                  />
                 </View>
               ) : evolutionItems.length === 0 ? (
                 <Text style={styles.placeholderText}>No evolution data available.</Text>
@@ -477,10 +481,19 @@ const styles = StyleSheet.create({
   contentLayer: {
     zIndex: 1,
   },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  favoriteWrapper: {
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
@@ -500,21 +513,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...ErrorTextStyle,
-  },
-  retryButton: {
-    marginTop: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#5631E8',
-    borderRadius: 8,
-  },
-  retryButtonDisabled: {
-    opacity: 0.6,
-  },
-  retryText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontFamily: AppFonts.rubikMedium,
   },
   header: {
     flexDirection: 'row',

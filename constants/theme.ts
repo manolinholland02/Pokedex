@@ -94,3 +94,9 @@ export const ErrorTextStyle = {
   textAlign: 'center',
   fontFamily: AppFonts.rubikMedium,
 };
+
+export const HeaderTitleStyle = {
+  color: '#0E0940',
+  fontSize: 24,
+  fontFamily: AppFonts.cabinetGroteskExtraBold,
+};

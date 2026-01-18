@@ -10,6 +10,7 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { databaseService } from '@/services/database';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -61,6 +62,10 @@ export default function RootLayout() {
       void SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
+
+  useEffect(() => {
+    databaseService.initDatabase().catch(console.error);
+  }, []);
 
   if (!fontsLoaded && !fontError) {
     return null;
