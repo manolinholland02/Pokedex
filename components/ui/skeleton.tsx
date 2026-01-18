@@ -2,7 +2,7 @@ import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 type SkeletonProps = {
   width?: number | string;
-  height?: number;
+  height?: number | string;
   borderRadius?: number;
   style?: StyleProp<ViewStyle>;
 };

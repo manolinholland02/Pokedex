@@ -3,7 +3,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 
 interface PokemonImageProps {
   id: string | number;
-  size?: number;
+  size?: number | string;
 }
 
 export function PokemonImage({ id, size = 200 }: PokemonImageProps) {

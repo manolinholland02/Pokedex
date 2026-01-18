@@ -1,12 +1,15 @@
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { Pokemon, PokemonList, PokemonListSkeleton } from '@/components/ui/pokemon-list';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AppFonts } from '@/constants/theme';
+import { AppFonts, CardShadow } from '@/constants/theme';
 import { useInfinitePokemonList } from '@/hooks/use-pokemon';
 
-const PAGE_LIMIT = 20;
+const PAGE_LIMIT = 50;
+const pokemonLabel = 'Pok\u00e9mon';
 
 export default function AllPokemonScreen() {
   const {
@@ -17,14 +20,36 @@ export default function AllPokemonScreen() {
     hasNextPage,
     isFetchingNextPage,
   } = useInfinitePokemonList(PAGE_LIMIT);
+  const [searchQuery, setSearchQuery] = useState('');
+  const showHeader = searchQuery.trim().length === 0;
+
+  const searchBar = (
+    <View style={styles.searchContainer}>
+      <View style={styles.searchInputWrapper}>
+        <MaterialIcons name="search" size={24} color="#000000" />
+        <TextInput
+          style={styles.searchInput}
+          placeholder={`Search for ${pokemonLabel}...`}
+          placeholderTextColor="#b3b3b3"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          autoCapitalize="none"
+          autoCorrect={false}
+          clearButtonMode="while-editing"
+        />
+      </View>
+    </View>
+  );
 
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>All PokAcmon</Text>
-          <Skeleton width={140} height={14} borderRadius={6} style={styles.headerSkeleton} />
-        </View>
+        {searchBar}
+        {showHeader ? (
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>{`All ${pokemonLabel}`}</Text>
+          </View>
+        ) : null}
         <PokemonListSkeleton count={6} />
       </SafeAreaView>
     );
@@ -35,7 +60,7 @@ export default function AllPokemonScreen() {
 
     return (
       <SafeAreaView style={styles.centerContainer}>
-        <Text style={styles.statusText}>Error loading Pokémon: {errorMessage}</Text>
+        <Text style={styles.statusText}>{`Error loading ${pokemonLabel}: ${errorMessage}`}</Text>
       </SafeAreaView>
     );
   }
@@ -54,6 +79,11 @@ export default function AllPokemonScreen() {
     }
   }
 
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredItems = normalizedQuery
+    ? pokemonItems.filter((item) => item.name.toLowerCase().includes(normalizedQuery))
+    : pokemonItems;
+
   const handleEndReached = () => {
     if (hasNextPage && !isFetchingNextPage) {
       void fetchNextPage();
@@ -69,12 +99,14 @@ export default function AllPokemonScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>All Pokémon</Text>
-        <Text style={styles.headerCount}>Pokémon ({pokemonItems.length})</Text>
-      </View>
+      {searchBar}
+      {showHeader ? (
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>{`All ${pokemonLabel}`}</Text>
+        </View>
+      ) : null}
       <PokemonList
-        data={pokemonItems}
+        data={filteredItems}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.4}
         ListFooterComponent={footer}
@@ -87,6 +119,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#EDF6FF',
+  },
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 4,
+  },
+  searchInputWrapper: {
+    ...CardShadow,
+    height: 48,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingLeft: 16,
+    paddingRight: 16,
+  },
+  searchInput: {
+    flex: 1,
+    height: '100%',
+    fontSize: 16,
+    color: '#000000',
+    fontFamily: AppFonts.interRegular,
   },
   header: {
     paddingHorizontal: 16,
@@ -102,9 +157,6 @@ const styles = StyleSheet.create({
     color: '#5631E8',
     fontSize: 14,
     fontFamily: AppFonts.rubikMedium,
-  },
-  headerSkeleton: {
-    marginTop: 6,
   },
   centerContainer: {
     flex: 1,

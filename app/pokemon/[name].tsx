@@ -81,13 +81,14 @@ export default function PokemonDetailScreen() {
   const nameValue = Array.isArray(name) ? name[0] : name;
   const pokemonName = nameValue ?? '';
   const { data: pokemon, isLoading, error, refetch, isFetching } = usePokemonByName(pokemonName);
+  const evolutionName = (pokemon?.species?.name ?? '').toLowerCase();
   const {
     data: evolutionChain,
     isLoading: isEvolutionLoading,
     error: evolutionError,
     refetch: refetchEvolution,
     isFetching: isEvolutionFetching,
-  } = usePokemonEvolutionChain(pokemonName.toLowerCase());
+  } = usePokemonEvolutionChain(evolutionName);
   const [activeTab, setActiveTab] = useState<PokemonTabKey>('about');
   const [whiteTop, setWhiteTop] = useState<number | null>(null);
   const [contentHeight, setContentHeight] = useState(0);
@@ -283,7 +284,9 @@ export default function PokemonDetailScreen() {
         ) : null}
         <View style={styles.contentLayer}>
           <View style={styles.header}>
-            <Text style={styles.pokemonName}>{pokemon.name}</Text>
+            <Text style={styles.pokemonName} numberOfLines={1} ellipsizeMode="tail">
+              {formatName(pokemon.name)}
+            </Text>
             <Text style={styles.pokemonId}>#{String(pokemon.id).padStart(3, '0')}</Text>
           </View>
 
@@ -292,8 +295,14 @@ export default function PokemonDetailScreen() {
               {pokemon.types.map((typeInfo) => (
                 <View
                   key={typeInfo.type.name}
-                  style={[styles.typeBadge, { backgroundColor: getTypeColor(typeInfo.type.name) }]}
+                  style={styles.typeBadge}
                 >
+                  <View
+                    style={[
+                      styles.typeDot,
+                      { backgroundColor: getTypeColor(typeInfo.type.name) },
+                    ]}
+                  />
                   <Text style={styles.typeText}>{typeInfo.type.name}</Text>
                 </View>
               ))}
@@ -508,21 +517,25 @@ const styles = StyleSheet.create({
     fontFamily: AppFonts.rubikMedium,
   },
   header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 16,
+    justifyContent: 'space-between',
+    paddingTop: 20,
+    paddingBottom: 12,
+    paddingHorizontal: 24,
   },
   pokemonName: {
+    flex: 1,
     fontSize: 32,
     color: '#0E0940',
     fontFamily: AppFonts.cabinetGroteskExtraBold,
     textTransform: 'capitalize',
   },
   pokemonId: {
-    fontSize: 18,
-    color: '#5631E8',
+    fontSize: 24,
+    color: '#aab0c6',
     marginTop: 4,
-    fontFamily: AppFonts.rubikMedium,
+    fontFamily: AppFonts.cabinetGroteskRegular,
   },
   imageContainer: {
     alignItems: 'center',
@@ -531,8 +544,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   typeSection: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
+    paddingHorizontal: 24,
   },
   tabs: {
     flexDirection: 'row',
@@ -704,17 +718,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   typeBadge: {
-    backgroundColor: '#5631E8',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    backgroundColor: '#0E094014',
+    height: 32,
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 12,
+    paddingRight: 14,
+    borderRadius: 99,
+    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  typeDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
   typeText: {
-    color: '#FFFFFF',
-    fontFamily: AppFonts.rubikBold,
+    color: '#0E0940',
+    fontSize: 16,
+    fontFamily: AppFonts.rubikSemiBold,
     textTransform: 'capitalize',
   },
   placeholderText: {

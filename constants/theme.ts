@@ -76,6 +76,7 @@ export const AppFonts = {
   rubikRegularItalic: 'Rubik-RegularItalic',
   rubikSemiBold: 'Rubik-SemiBold',
   rubikSemiBoldItalic: 'Rubik-SemiBoldItalic',
+  interRegular: 'Inter-Regular',
   sfProTextRegular: 'SFProText-Regular',
 };
 

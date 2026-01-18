@@ -20,7 +20,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'All Pokémon',
+          title: 'Pok\u00e9mon',
           tabBarIcon: ({ color }) => (
             <MaterialIcons size={28} name="catching-pokemon" color={color} />
           ),
@@ -29,7 +29,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="favorites"
         options={{
-          title: 'Favorites',
+          title: 'Favourites',
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="favorite" color={color} />,
         }}
       />

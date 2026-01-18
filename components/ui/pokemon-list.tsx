@@ -1,6 +1,8 @@
 import { FlatList, FlatListProps, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
+import { PokemonImage } from '@/components/ui/pokemon-image';
 import { AppFonts, CardShadow } from '@/constants/theme';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -24,6 +26,12 @@ export function PokemonList({
   ListFooterComponent,
 }: PokemonListProps) {
   const router = useRouter();
+  const formatName = (value: string) =>
+    value
+      .split(/[-\s]+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
   const handlePokemonPress = (pokemonName: string) => {
     router.push(`/pokemon/${pokemonName.toLowerCase()}`);
   };
@@ -45,9 +53,17 @@ export function PokemonList({
               <View style={styles.idBadge}>
                 <Text style={styles.idText}>{String(item.id).padStart(3, '0')}</Text>
               </View>
+              <View style={styles.imageWrapper}>
+                <PokemonImage id={item.id} size="100%" />
+              </View>
             </View>
             <View style={styles.nameSection}>
-              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+                {formatName(item.name)}
+              </Text>
+              <View style={styles.iconWrapper}>
+                <MaterialIcons name="more-vert" size={24} color="#0E0940" />
+              </View>
             </View>
           </View>
         </Pressable>
@@ -75,6 +91,9 @@ export function PokemonListSkeleton({ count = 6 }: PokemonListSkeletonProps) {
           <View style={styles.card}>
             <View style={styles.cardBackground}>
               <Skeleton width={40} height={16} borderRadius={4} />
+              <View style={styles.imageWrapper}>
+                <Skeleton width="100%" height="100%" borderRadius={12} />
+              </View>
             </View>
             <View style={styles.nameSection}>
               <Skeleton width="70%" height={18} borderRadius={6} />
@@ -93,8 +112,8 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   column: {
-    gap: 12,
-    marginBottom: 12,
+    gap: 16,
+    marginBottom: 16,
   },
   cardShadow: {
     ...CardShadow,
@@ -113,9 +132,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#F6F6FF',
     padding: 12,
   },
+  imageWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   nameSection: {
     paddingHorizontal: 12,
     paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  iconWrapper: {
+    width: 24,
+    alignItems: 'flex-end',
   },
   idBadge: {
     alignSelf: 'flex-start',
@@ -132,7 +163,8 @@ const styles = StyleSheet.create({
   },
   name: {
     color: '#0E0940',
-    fontSize: 22,
+    fontSize: 16,
     fontFamily: AppFonts.rubikMedium,
+    flex: 1,
   },
 });

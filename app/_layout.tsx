@@ -52,6 +52,7 @@ export default function RootLayout() {
     'Rubik-RegularItalic': require('../assets/fonts/Rubik-RegularItalic.ttf'),
     'Rubik-SemiBold': require('../assets/fonts/Rubik-SemiBold.ttf'),
     'Rubik-SemiBoldItalic': require('../assets/fonts/Rubik-SemiBoldItalic.ttf'),
+    'Inter-Regular': require('../assets/fonts/Inter-Regular.otf'),
     'SFProText-Regular': require('../assets/fonts/SFPRODISPLAYREGULAR.otf'),
   });
 
