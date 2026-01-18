@@ -1,4 +1,4 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, FlatListProps, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { AppFonts } from '@/constants/theme';
@@ -11,9 +11,17 @@ export interface Pokemon {
 
 type PokemonListProps = {
   data: Pokemon[];
+  onEndReached?: FlatListProps<Pokemon>['onEndReached'];
+  onEndReachedThreshold?: FlatListProps<Pokemon>['onEndReachedThreshold'];
+  ListFooterComponent?: FlatListProps<Pokemon>['ListFooterComponent'];
 };
 
-export function PokemonList({ data }: PokemonListProps) {
+export function PokemonList({
+  data,
+  onEndReached,
+  onEndReachedThreshold,
+  ListFooterComponent,
+}: PokemonListProps) {
   const router = useRouter();
 
   return (
@@ -23,6 +31,9 @@ export function PokemonList({ data }: PokemonListProps) {
       numColumns={2}
       contentContainerStyle={styles.listContent}
       columnWrapperStyle={styles.column}
+      onEndReached={onEndReached}
+      onEndReachedThreshold={onEndReachedThreshold}
+      ListFooterComponent={ListFooterComponent}
       renderItem={({ item }) => (
         <Pressable style={styles.cardShadow} onPress={() => router.push(`/pokemon/${item.id}`)}>
           <View style={styles.card}>

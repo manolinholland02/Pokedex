@@ -1,12 +1,21 @@
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { PokemonList, Pokemon } from '@/components/ui/pokemon-list';
+import { Pokemon, PokemonList } from '@/components/ui/pokemon-list';
 import { AppFonts } from '@/constants/theme';
-import { usePokemonList } from '@/hooks/use-pokemon';
+import { useInfinitePokemonList } from '@/hooks/use-pokemon';
+
+const PAGE_LIMIT = 20;
 
 export default function AllPokemonScreen() {
-  const { data: pokemonList, isLoading, error } = usePokemonList(0, 150);
+  const {
+    data: pokemonList,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfinitePokemonList(PAGE_LIMIT);
 
   if (isLoading) {
     return (
@@ -28,16 +37,31 @@ export default function AllPokemonScreen() {
   }
 
   const pokemonItems: Pokemon[] = [];
-  for (const item of pokemonList?.results ?? []) {
-    if (!item.id) {
-      continue;
-    }
+  for (const page of pokemonList?.pages ?? []) {
+    for (const item of page.results ?? []) {
+      if (!item.id) {
+        continue;
+      }
 
-    const id = Number(item.id);
-    if (!Number.isNaN(id)) {
-      pokemonItems.push({ id, name: item.name, type: '' });
+      const id = Number(item.id);
+      if (!Number.isNaN(id)) {
+        pokemonItems.push({ id, name: item.name, type: '' });
+      }
     }
   }
+
+  const handleEndReached = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      void fetchNextPage();
+    }
+  };
+
+  const footer = isFetchingNextPage ? (
+    <View style={styles.footer}>
+      <ActivityIndicator size="small" />
+      <Text style={styles.footerText}>Loading more...</Text>
+    </View>
+  ) : null;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -45,7 +69,12 @@ export default function AllPokemonScreen() {
         <Text style={styles.headerTitle}>All Pokémon</Text>
         <Text style={styles.headerCount}>Pokémon ({pokemonItems.length})</Text>
       </View>
-      <PokemonList data={pokemonItems} />
+      <PokemonList
+        data={pokemonItems}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.4}
+        ListFooterComponent={footer}
+      />
     </SafeAreaView>
   );
 }
@@ -81,6 +110,16 @@ const styles = StyleSheet.create({
     marginTop: 12,
     color: '#0E0940',
     fontSize: 16,
+    fontFamily: AppFonts.rubikMedium,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  footerText: {
+    marginTop: 6,
+    color: '#0E0940',
+    fontSize: 12,
     fontFamily: AppFonts.rubikMedium,
   },
 });

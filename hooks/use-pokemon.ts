@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { InfiniteData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { NamedAPIResource, NamedAPIResourceList } from 'pokenode-ts';
 
 import { PokeApiService } from '@/services/pokemon-api';
@@ -29,13 +29,51 @@ const mapWithResourceId = (resource: NamedAPIResource): PokemonWithId => {
   };
 };
 
-export const usePokemonList = (limit: number = 20, offset: number = 0) => {
+const mapPageWithIds = (page: NamedAPIResourceList): PokemonListWithId => ({
+  ...page,
+  results: page.results.map(mapWithResourceId),
+});
+
+const getNextOffsetFromUrl = (url: string | null): number | undefined => {
+  if (!url) {
+    return undefined;
+  }
+
+  const match = url.match(/[\?&]offset=(\d+)/);
+  if (!match) {
+    return undefined;
+  }
+
+  const offset = Number(match[1]);
+  return Number.isNaN(offset) ? undefined : offset;
+};
+
+export const usePokemonList = (offset: number = 0, limit: number = 20) => {
   return useQuery<NamedAPIResourceList, Error, PokemonListWithId>({
-    queryKey: ['pokemon-list', limit, offset],
-    queryFn: () => PokeApiService.listPokemons(limit, offset),
+    queryKey: ['pokemon-list', offset, limit],
+    queryFn: () => PokeApiService.listPokemons(offset, limit),
     select: (data) => ({
       ...data,
       results: data.results.map(mapWithResourceId),
+    }),
+  });
+};
+
+export const useInfinitePokemonList = (limit: number = 20) => {
+  return useInfiniteQuery<
+    NamedAPIResourceList,
+    Error,
+    InfiniteData<PokemonListWithId>,
+    ['pokemon-list', number],
+    number
+  >({
+    queryKey: ['pokemon-list', limit],
+    queryFn: ({ pageParam }) => PokeApiService.listPokemons(pageParam, limit),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => getNextOffsetFromUrl(lastPage.next),
+    select: (data) => ({
+      pageParams: data.pageParams,
+      pages: data.pages.map(mapPageWithIds),
     }),
   });
 };
