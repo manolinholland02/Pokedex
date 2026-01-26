@@ -509,8 +509,8 @@ export default function PokemonDetailScreen() {
             onIndexChange={setTabIndex}
             initialLayout={{ width: viewportWidth }}
             style={{ height: tabViewHeight }}
-            sceneContainerStyle={styles.tabSceneContainer}
             renderTabBar={() => null}
+            commonOptions={{ sceneStyle: styles.tabSceneContainer }}
           />
         </View>
       </ScrollView>
